@@ -10,7 +10,7 @@ class AsymmetricSystem:
         self.settings = settings
         logging.info(' Default settings are loaded')
 
-    def generation_keys(self) -> tuple:
+    def generation_asymmetric_keys(self) -> tuple:
         keys = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048
@@ -19,15 +19,15 @@ class AsymmetricSystem:
         public_key = keys.public_key()
         return private_key, public_key
 
-    def serialization_keys(self, tuple_keys: tuple,
-                           public_pem: str, private_pem: str) -> None:
-        private_key = tuple_keys[0]
+    def serialization_asymmetric_keys(self, public_key: rsa.RSAPublicKey,
+                                      private_key: rsa.RSAPrivateKey,
+                                      public_pem: str,
+                                      private_pem: str) -> None:
         private_key_serialized = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption()
         )
-        public_key = tuple_keys[1]
         public_key_serialized = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
@@ -49,11 +49,11 @@ class AsymmetricSystem:
             logging.warning(f' Private key not saved\nError:{err}')
             raise
 
-    def get_public_key(self, public_pem: str) -> rsa.RSAPrivateKey:
+    def get_public_key(self, public_pem: str) -> rsa.RSAPublicKey:
         try:
             with open(public_pem, 'rb') as f:
                 public_key_deserialized = f.read()
-            public_key = serialization.load_pem_public_key(
+            public_key = load_pem_public_key(
                 public_key_deserialized)
             logging.info(
                 f' Public key successfully read from file: {public_pem}')
@@ -66,7 +66,7 @@ class AsymmetricSystem:
         try:
             with open(private_pem, 'rb') as f:
                 private_key_deserialized = f.read()
-            private_key = serialization.load_pem_public_key(
+            private_key = load_pem_private_key(
                 private_key_deserialized, password=None)
             logging.info(
                 f' Private key successfully read from file: {private_pem}')
@@ -75,9 +75,9 @@ class AsymmetricSystem:
             raise
         return private_key
 
-    def encryption_symmetric_key(self, 
-                                 public_key: rsa.RSAPrivateKey, 
-                                 symmetric_key: bytes, 
+    def encryption_symmetric_key(self,
+                                 public_key: rsa.RSAPublicKey,
+                                 symmetric_key: bytes,
                                  path_symmetric_key: str) -> None:
         encrypted_symmetric_key = public_key.encrypt(
             symmetric_key,
@@ -97,9 +97,9 @@ class AsymmetricSystem:
                 f' Encrypted symmetric key was not write\nError:{err}')
             raise
 
-    def decryption_symmetric_key(self, 
-                                 private_key: rsa.RSAPrivateKey, 
-                                 encrypted_symmetric_key: bytes, 
+    def decryption_symmetric_key(self,
+                                 private_key: rsa.RSAPrivateKey,
+                                 encrypted_symmetric_key: bytes,
                                  path_symmetric_key: str) -> None:
         symmetric_key = private_key.decrypt(
             encrypted_symmetric_key,
@@ -118,4 +118,3 @@ class AsymmetricSystem:
             logging.warning(
                 f' Decrypted symmetric key was not write\nError:{err}')
             raise
-        
