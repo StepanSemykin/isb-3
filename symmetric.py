@@ -80,5 +80,5 @@ class SymmetricSystem:
             logging.info(
                 f' Decrypted message write to file: {path_decrypted_message}')
         except OSError as err:
-            logging.warning(f' Message has not read\nError:{err}')
+            logging.warning(f' Decrypted message was not write\nError:{err}')
             raise
