@@ -4,6 +4,9 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding as asymmetric_padding
 from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_pem_private_key
 
+logger = logging.getLogger()
+logger.setLevel('INFO')
+
 
 class AsymmetricSystem:
     def __init__(self, settings: dict) -> None:
@@ -17,6 +20,7 @@ class AsymmetricSystem:
         )
         private_key = keys
         public_key = keys.public_key()
+        logging.info(' Asymmetric keys successfully generated')
         return private_key, public_key
 
     def serialization_asymmetric_keys(self, public_key: rsa.RSAPublicKey,
@@ -33,7 +37,7 @@ class AsymmetricSystem:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
         try:
-            with open(self.public_pem, 'wb') as f:
+            with open(public_pem, 'wb') as f:
                 f.write(public_key_serialized)
             logging.info(
                 f' Public key successfully saved to file: {public_pem}')
@@ -41,7 +45,7 @@ class AsymmetricSystem:
             logging.warning(f' Public key not saved\nError:{err}')
             raise
         try:
-            with open(self.private_pem, 'wb') as f:
+            with open(private_pem, 'wb') as f:
                 f.write(private_key_serialized)
             logging.info(
                 f' Private key successfully saved to file: {private_pem}')
@@ -77,8 +81,7 @@ class AsymmetricSystem:
 
     def encryption_symmetric_key(self,
                                  public_key: rsa.RSAPublicKey,
-                                 symmetric_key: bytes,
-                                 path_symmetric_key: str) -> None:
+                                 symmetric_key: bytes,) -> bytes:
         encrypted_symmetric_key = public_key.encrypt(
             symmetric_key,
             asymmetric_padding.OAEP(
@@ -87,20 +90,11 @@ class AsymmetricSystem:
                 label=None
             )
         )
-        try:
-            with open(path_symmetric_key, 'wb') as f:
-                f.write(encrypted_symmetric_key)
-            logging.info(
-                f' Encrypted symmetric key successfully write to file: {path_symmetric_key}')
-        except OSError as err:
-            logging.warning(
-                f' Encrypted symmetric key was not write\nError:{err}')
-            raise
+        return encrypted_symmetric_key
 
     def decryption_symmetric_key(self,
                                  private_key: rsa.RSAPrivateKey,
-                                 encrypted_symmetric_key: bytes,
-                                 path_symmetric_key: str) -> None:
+                                 encrypted_symmetric_key: bytes,) -> None:
         symmetric_key = private_key.decrypt(
             encrypted_symmetric_key,
             asymmetric_padding.OAEP(
@@ -109,12 +103,5 @@ class AsymmetricSystem:
                 label=None
             )
         )
-        try:
-            with open(path_symmetric_key, 'wb') as f:
-                f.write(symmetric_key)
-            logging.info(
-                f' Decrypted symmetric key successfully write to file: {path_symmetric_key}')
-        except OSError as err:
-            logging.warning(
-                f' Decrypted symmetric key was not write\nError:{err}')
-            raise
+        return symmetric_key
+    

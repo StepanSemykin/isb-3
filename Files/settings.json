@@ -1,0 +1,6 @@
+{"initial_file": "D:\\lab_oib\\isb-3\\Files\\text.txt", 
+"encrypted_text": "D:\\lab_oib\\isb-3\\Files\\encrypted_file.txt", 
+"decrypted_text": "D:\\lab_oib\\isb-3\\Files\\decrypted_file.txt", 
+"symmetric_key": "D:\\lab_oib\\isb-3\\Files\\symmetric_key.txt", 
+"public_key": "D:\\lab_oib\\isb-3\\Files\\public_key.pem", 
+"private_key": "D:\\lab_oib\\isb-3\\Files\\private_key.pem"}
