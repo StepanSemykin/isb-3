@@ -1,8 +1,10 @@
 import logging
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import \
+    padding as asymmetric_padding
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding as asymmetric_padding
-from cryptography.hazmat.primitives.serialization import load_pem_public_key, load_pem_private_key
+from cryptography.hazmat.primitives.serialization import (load_pem_private_key,
+                                                          load_pem_public_key)
 
 logger = logging.getLogger()
 logger.setLevel('INFO')
@@ -10,10 +12,18 @@ logger.setLevel('INFO')
 
 class AsymmetricSystem:
     def __init__(self, settings: dict) -> None:
+        """Initialization of a asymmetric encryption system.
+        Args:
+            settings (dict): settings containing file paths.
+        """
         self.settings = settings
-        logging.info(' Default settings are loaded')
+        logging.info(' Default settings are loaded(AsymmetricSystem)')
 
     def generation_asymmetric_keys(self) -> tuple:
+        """Generates a key for asymmetric encryption.
+        Returns:
+            tuple: tuple of keys.
+        """
         keys = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048
@@ -27,6 +37,13 @@ class AsymmetricSystem:
                                       private_key: rsa.RSAPrivateKey,
                                       public_pem: str,
                                       private_pem: str) -> None:
+        """Save asymmetric keys in a bit sequence in .txt.
+        Args:
+            public_key (rsa.RSAPublicKey): asymmetric encryption public key.
+            private_key (rsa.RSAPrivateKey): asymmetric encryption private key.
+            public_pem (str): path to the file to save public key.
+            private_pem (str): path to the file to save private key.
+        """     
         private_key_serialized = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
@@ -54,6 +71,12 @@ class AsymmetricSystem:
             raise
 
     def get_public_key(self, public_pem: str) -> rsa.RSAPublicKey:
+        """loads a public key from .txt.
+        Args:
+            public_pem (str): path to the file with the public key.
+        Returns:
+            rsa.RSAPublicKey: public key.
+        """
         try:
             with open(public_pem, 'rb') as f:
                 public_key_deserialized = f.read()
@@ -67,6 +90,12 @@ class AsymmetricSystem:
         return public_key
 
     def get_private_key(self, private_pem: str) -> rsa.RSAPrivateKey:
+        """loads a private key from .txt.
+        Args:
+            private_pem (str): path to the file with the private key.
+        Returns:
+            rsa.RSAPrivateKey: private key.
+        """
         try:
             with open(private_pem, 'rb') as f:
                 private_key_deserialized = f.read()
@@ -81,7 +110,14 @@ class AsymmetricSystem:
 
     def encryption_symmetric_key(self,
                                  public_key: rsa.RSAPublicKey,
-                                 symmetric_key: bytes,) -> bytes:
+                                 symmetric_key: bytes) -> bytes:
+        """Encrypts a symmetric key with asymmetric encryption.
+        Args:
+            public_key (rsa.RSAPublicKey): asymmetric encryption public key.
+            symmetric_key (bytes): symmetric encryption key.
+        Returns:
+            bytes: encrypted symmetric key.
+        """
         encrypted_symmetric_key = public_key.encrypt(
             symmetric_key,
             asymmetric_padding.OAEP(
@@ -94,7 +130,14 @@ class AsymmetricSystem:
 
     def decryption_symmetric_key(self,
                                  private_key: rsa.RSAPrivateKey,
-                                 encrypted_symmetric_key: bytes,) -> None:
+                                 encrypted_symmetric_key: bytes) -> bytes:
+        """Decrypts a symmetric key with asymmetric encryption.
+        Args:
+            private_key (rsa.RSAPrivateKey): asymmetric encryption private key.
+            encrypted_symmetric_key (bytes): encrypted symmetric key.
+        Returns:
+            bytes: decrypted symmetric key.
+        """
         symmetric_key = private_key.decrypt(
             encrypted_symmetric_key,
             asymmetric_padding.OAEP(
